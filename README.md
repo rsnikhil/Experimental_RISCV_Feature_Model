@@ -31,8 +31,6 @@ In this repo you will find:
     peruse the feature types to see how preconditions, constraints and
     defaults are expressed.
 
-    You should start by reading this file.
-
     Note: currentlly contains many but not all features.
 
 - `RV32IMU.yaml` and `RV64IMAUS.yaml`: two sample particular feature lists
@@ -57,10 +55,10 @@ This will:
 
  - read the YAML file,
  - separate the constraints into standard (present in `RISCV_Feature_Types`) and non-standard features,
- - check all constraints
+ - check all constraints (on standard features)
  - write out two files:
      - `RV32IMU_std.yaml` which "completes" the given standard features with all defaults
-     - `RV32IMU_nonstd.yam` which contains all the non-standard features.
+     - `RV32IMU_nonstd.yam` which contains all the non-standard features (as-is from the input).
 
    These latter two files can be read by a formal ISA spec or universal
    simulator to contrain its behavior.
