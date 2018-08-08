@@ -22,7 +22,7 @@ options such as:
 - Implementation options such as support for misaligned memory accesses
 - What actually gets written to a CSR WARL field on a CSR write
 
-In this REPO you will find:
+In this repo you will find:
 
 - `RISCV_Feature_Types.py`: a specification of all possible features
     and their constraints (allowed values, preconditions, dependence
