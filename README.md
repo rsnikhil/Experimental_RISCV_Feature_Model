@@ -31,7 +31,7 @@ In this repo you will find:
     peruse the feature types to see how preconditions, constraints and
     defaults are expressed.
 
-    Note: currentlly contains many but not all features.
+    Note: currently contains many but not all features.
 
 - `RV32IMU.yaml` and `RV64IMAUS.yaml`: two sample particular feature lists
     for two particular implementations.
