@@ -42,8 +42,14 @@ If you are only reading, then the above files are enough.
 
 ----------------------------------------------------------------
 
-The repo also contains files `Main.py` and `Constraint_Check.py` using
-which you can execute, like this:
+The repo also contains Python files `Main.py` and
+`Constraint_Check.py` using which you can execute.  Make sure your
+installation has:
+
+- Python 3.5 or 3.6
+- The `python3-yaml` library.
+
+Then, you can execute like this:
 
         ./Main.py  RV32IMU.yaml    <optional verbosity of 1, 2, ..>
 
@@ -59,4 +65,4 @@ This will:
    These latter two files can be read by a formal ISA spec or universal
    simulator to contrain its behavior.
 
-We've only tested it on Python 3.6, and not on any earlier versions of Python.
+This has been tested on Python 3.5.3 and 3.6.5.

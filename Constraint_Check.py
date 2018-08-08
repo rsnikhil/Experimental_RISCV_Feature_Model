@@ -140,9 +140,9 @@ def eval (verbosity, ftypes, features, ftype, prefix, e):
             sys.stderr.write ("ERROR: XLEN not specified\n")
             sys.exit (1)
         if (v == 32):
-            return debug_trace (verbosity, prefix + "<== Eval ", 0xFFFF_FFFF)
+            return debug_trace (verbosity, prefix + "<== Eval ", 0xFFFFFFFF)
         else:
-            return debug_trace (verbosity, prefix + "<== Eval ", 0xFFFF_FFFF_FFFF_FFFF)
+            return debug_trace (verbosity, prefix + "<== Eval ", 0xFFFFFFFFFFFFFFFF)
 
     # Leaf term: Constants
     if e == None:        return debug_trace (verbosity, prefix + "<== Eval ", e)
