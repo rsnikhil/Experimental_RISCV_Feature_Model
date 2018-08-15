@@ -9,7 +9,7 @@ Traps_on_unaligned_mem_access: True
 Reset_PC: 0x1000
 WFI_is_nop: False
 MTVEC_is_read_only: False
-MTVEC_WARL_fn: ["Lambda", ["write_val", "old_val"], ["Bit_and", "write_val", 0xFFFC]]
+MTVEC_BASE_WARL_fn: ["Lambda", ["write_val", "old_val"], ["Bit_and", "write_val", 0xFFFC]]
 NMI_address: 0x200
 MSIP_address: 0x_0200_0000
 MTIME_address: 0x_0200_bFF8

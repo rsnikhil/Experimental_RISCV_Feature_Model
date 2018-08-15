@@ -251,7 +251,11 @@ def apply (verbosity, ftypes, features, ftype, prefix, op, v_args):
 # - addr ranges are disjoint
 
 def is_address_map (xs):
-    return True    # TODO: see above checks
+    if (xs == None):
+        return False
+    else:
+        # TODO: see above checks
+        return True
 
 # ----------------------------------------------------------------
 # xs must be a non-empty list of increasing (not necessarily contiguous) integers starting with 0

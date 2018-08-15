@@ -324,7 +324,7 @@ ftypes.extend ([
               Lambda (["old_val", "write_val"],
                       If (Eq (Fval ("Extn_U"), False),
                           0,
-                          "write_val")),
+                          "old_val")),
               [],
               Legal_WARL_fn ("MIDELEG", v)),
 
@@ -333,7 +333,7 @@ ftypes.extend ([
               Lambda (["old_val", "write_val"],
                       If (Eq (Fval ("Extn_U"), False),
                           0,
-                          "write_val")),
+                          "old_val")),
               [],
               Legal_WARL_fn ("MEDELEG", v)),
 ])
@@ -425,13 +425,13 @@ ftypes.extend ([
 
     mk_ftype ("MTVEC_BASE_WARL_fn",
               "WARL function to transform values written to MTVEC BASE field",
-              Lambda (["old_val", "write_val"], "write_val"),
+              Lambda (["old_val", "write_val"], "old_val"),
               [ Eq (Fval ("MTVEC_is_read_only"), False) ],
               Legal_WARL_fn ("MTVEC_BASE", v)),
 
     mk_ftype ("MTVEC_MODE_WARL_fn",
               "WARL function to transform values written to MTVEC MODE field",
-              Lambda (["old_val", "write_val"], "write_val"),
+              Lambda (["old_val", "write_val"], "old_val"),
               [ Eq (Fval ("MTVEC_is_read_only"), False) ],
               Legal_WARL_fn ("MTVEC_BASE", v)),
 
@@ -443,14 +443,14 @@ ftypes.extend ([
 
     mk_ftype ("STVEC_BASE_WARL_fn",
               "WARL function to transform values written to STVEC BASE field (requires S)",
-              Lambda (["old_val", "write_val"], "write_val"),
+              Lambda (["old_val", "write_val"], "old_val"),
               [ Eq (Fval ("Extn_S"), True),
                 Eq (Fval ("STVEC_is_read_only"), False) ],
               Legal_WARL_fn ("STVEC_MODE", v)),
 
     mk_ftype ("STVEC_MODE_WARL_fn",
               "WARL function to transform values written to STVEC MODE field (requires S)",
-              Lambda (["old_val", "write_val"], "write_val"),
+              Lambda (["old_val", "write_val"], "old_val"),
               [ Eq (Fval ("Extn_S"), True),
                 Eq (Fval ("STVEC_is_read_only"), False) ],
               Legal_WARL_fn ("STVEC_MODE", v)),
@@ -463,14 +463,14 @@ ftypes.extend ([
 
     mk_ftype ("UTVEC_BASE_WARL_fn",
               "WARL function to transform values written to UTVEC BASE field (requires U, N)",
-              Lambda (["old_val", "write_val"], "write_val"),
+              Lambda (["old_val", "write_val"], "old_val"),
               [ Eq (Fval ("Extn_N"), True),
                 Eq (Fval ("UTVEC_is_read_only"), False) ],
               Legal_WARL_fn ("UTVEC_BASE", v)),
 
     mk_ftype ("UTVEC_MODE_WARL_fn",
               "WARL function to transform values written to UTVEC MODE field (requires U, N)",
-              Lambda (["old_val", "write_val"], "write_val"),
+              Lambda (["old_val", "write_val"], "old_val"),
               [ Eq (Fval ("Extn_N"), True),
                 Eq (Fval ("UTVEC_is_read_only"), False) ],
               Legal_WARL_fn ("UTVEC_MODE", v)),
@@ -488,7 +488,7 @@ ftypes.extend ([
               Is_bool (v)),
     mk_ftype ("MHPMEVENT3_WARL_fn",
               "WARL function to transform values written to MHPMEVENT3",
-              Lambda (["old_val", "write_val"], "write_val"),
+              Lambda (["old_val", "write_val"], "old_val"),
               [ Eq (Fval ("MHPM3_exists"), True) ],
               Legal_WARL_fn ("MHPMEVENT3", v)),
 
@@ -499,7 +499,7 @@ ftypes.extend ([
               Is_bool (v)),
     mk_ftype ("MHPMEVENT4_WARL_fn",
               "WARL function to transform values written to MHPMEVENT4",
-              Lambda (["old_val", "write_val"], "write_val"),
+              Lambda (["old_val", "write_val"], "old_val"),
               [ Eq (Fval ("MHPM4_exists"), True) ],
               Legal_WARL_fn ("MHPMEVENT4", v)),
 
@@ -524,7 +524,7 @@ ftypes.extend ([
 ftypes.extend ([
     mk_ftype ("MEPC_WARL_fn",
               "WARL function to transform values written to MEPC",
-              Lambda (["old_val", "write_val"], "write_val"),
+              Lambda (["old_val", "write_val"], "old_val"),
               [],
               Legal_WARL_fn ("MEPC", v))
 ])
@@ -552,7 +552,7 @@ ftypes.extend ([
 ftypes.extend ([
     mk_ftype ("SATP_MODE_WARL_fn",
               "WARL function to transform values written to SATP.MODE",
-              Lambda (["old_val", "write_val"], "write_val"),
+              Lambda (["old_val", "write_val"], "old_val"),
               [ Eq (Fval ("Extn_S"), True) ],
               Legal_WARL_fn ("SATP_MODE", v))
 ])
@@ -568,7 +568,7 @@ ftypes.extend ([
 ftypes.extend ([
     mk_ftype ("SATP_PPN_WARL_fn",
               "WARL function to transform values written to SATP.PPN",
-              Lambda (["old_val", "write_val"], "write_val"),
+              Lambda (["old_val", "write_val"], "old_val"),
               [ Eq (Fval ("Extn_S"), True) ],
               Legal_WARL_fn ("SATP_PPN", v))
 ])
@@ -579,7 +579,7 @@ ftypes.extend ([
 ftypes.extend ([
     mk_ftype ("SATP_WARL_fn",
               "WARL function to transform values written to SATP",
-              Lambda (["old_val", "write_val"], "write_val"),
+              Lambda (["old_val", "write_val"], "old_val"),
               [ Eq (Fval ("Extn_S"), True) ],
               Legal_WARL_fn ("SATP", v)),
 

@@ -15,3 +15,6 @@ NMI_address: 0x200
 CYCLE_defined: True
 TIME_defined: False
 INSTRET_defined: True
+
+address_map: [ [0x8000_0000, 0x0100_0000, "MEM", "RW",   "Main Mem"]
+             ]
