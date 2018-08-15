@@ -104,15 +104,15 @@ def Lambda (args,e):     return ("Lambda", args, e)
 # and more meaningful error messages.
 
 def mk_ftype (name, default, descr, preconds, constraint):
-    return (name,        # String: name of feature
-            default,     # expression ('None', if this feature has no default)
+    return (name,        # String: name of feature (identifier)
             descr,       # String: text description of feature
+            default,     # Expression ('None', if this feature has no default)
             preconds,    # List of boolean-valued expressions (these are logically ANDed)
             constraint)  # Boolean-valued expression
 
 def ftype_name (f):       return f [0]
-def ftype_default (f):    return f [1]
 def ftype_descr (f):      return f [2]
+def ftype_default (f):    return f [1]
 def ftype_preconds (f):   return f [3]
 def ftype_constraint (f): return f [4]
 
@@ -144,22 +144,22 @@ ftypes = []
 
 ftypes.extend ([
     mk_ftype ("User_Spec_Version",
-              None,
               "Version number of User Level ISA specification",
+              "2.2",
               [],
               In (v, [ "2.2", "2.3" ])),
     
     mk_ftype ("Privilege_Spec_Version",
-              None,
               "Version number of Privileged Architecture specification",
+              "1.10",
               [],
               In (v, [ "1.10", "1.11" ])),
 
     mk_ftype ("XLEN",
-              None,
               "Width of integer registers",
+              None,
               [],
-              In (v, [32, 64])),    # RV32 and RV64 only
+              In (v, [32, 64])),    # RV32 and RV64 only (can extend to RV128)
 ])
 
 # ================================================================
@@ -167,82 +167,82 @@ ftypes.extend ([
 
 ftypes.extend ([
     mk_ftype ("MISA_MXL_WARL_fn",
+              "WARL function to transform MISA.MXL field",
               Lambda (["old_val", "write_val"],
                       XLEN_code (Fval ("XLEN"))),
-              "WARL function to transform MISA.MXL field",
               [],
               Legal_WARL_fn ("MISA_MXL", v)),
 
     mk_ftype ("Extn_A",
-              False,
               "Optional ISA extension 'A' for Atomic Memory Operations",
+              False,
               [],
               Is_bool (v)),
 
     mk_ftype ("Extn_C",
-              False,
               "Optional ISA extension 'C' (Compressed instructions)",
+              False,
               [],
               Is_bool (v)),
 
     mk_ftype ("Extn_D",
-              False,
               "Optional ISA extension 'D' (Double precision floating point)",
+              False,
               [ Eq (Fval ("Extn_F"), True) ],    # "The D extension depends on the base single-precision subset F"
               Is_bool (v)),
 
     mk_ftype ("Extn_F",
-              False,
               "Optional ISA extension 'F' (Single precision floating point)",
+              False,
               [],
               Is_bool (v)),
 
     mk_ftype ("Extn_G",
-              False,
               "Optional ISA extension 'G' (Additional standard extensions present)",
+              False,
               [],
               Is_bool (v)),
 
     mk_ftype ("Extn_I",
-              True,
               "Required ISA extension 'I' ()",
+              True,
               [],
               Eq (v, True)),
 
     mk_ftype ("Extn_M",
-              False,
               "Optional ISA extension 'M' for Integer Multiply/Divide Operations",
+              False,
               [],
               Is_bool (v)),
 
     mk_ftype ("Extn_N",
-              False,
               "Optional ISA extension 'N' for User-level interrupts supported (requires U)",
+              False,
               [ Eq (Fval ("Extn_U"), True) ],
               Is_bool (v)),
 
     mk_ftype ("Extn_Q",
-              False,
               "Optional ISA extension 'Q' (Quad precision floating point, requires FD)",
+              False,
               [ Eq (Fval ("XLEN"), 64),
                 Eq (Fval ("Extn_D"), True) ],
               Is_bool (v)),
 
     mk_ftype ("Extn_S",
-              False,
               "Optional ISA extension 'S' (Supervisor Privilege Mode)",
+              False,
               [ Eq (Fval ("Extn_U"), True) ],
               Is_bool (v)),
 
     mk_ftype ("Extn_U",
-              False,
               "Optional ISA extension 'U' (User Privilege Mode)",
+              False,
               [],
               Is_bool (v)),
 
     mk_ftype ("Extn_X",
-              False,
               "Optional ISA extension 'X' (Non-standard extensions present)",
+              False,
               [],
               Is_bool (v))
 ])
@@ -257,26 +257,26 @@ ftypes.extend ([
 
 ftypes.extend ([
     mk_ftype ("Vendorid",
-              0,
               "Value of mvendorid CSR",
+              0,
               [],
               Is_int (v)),
 
     mk_ftype ("Archid",
-              0,
               "Value of marchid CSR",
+              0,
               [],
               Is_int (v)),
 
     mk_ftype ("Impid",
-              0,
               "Value of mimpid CSR",
+              0,
               [],
               Is_int (v)),
 
     mk_ftype ("Hartids",
-              [0],
               "Values of hartids (list of hartids [0, ...])",
+              [0],
               [],
               Are_hartids (v))
 ])
@@ -286,30 +286,30 @@ ftypes.extend ([
 
 ftypes.extend ([
     mk_ftype ("MSTATUS_SXL",
+              "WARL function to transform MSTATUS.SXL field in RV64 and RV128 when S-Mode is supported",
               Lambda (["old_val", "write_val"],
                       XLEN_code (Fval ("XLEN"))),
-              "WARL function to transform MSTATUS.SXL field in RV64 and RV128 when S-Mode is supported",
               [ And2 (Ne (Fval ("XLEN"), 32),
                       Eq (Fval ("Extn_S"), True)) ],
               Legal_WARL_fn ("MSTATUS_SXL", v)),
 
     mk_ftype ("MSTATUS_UXL",
+              "WARL function to transform MSTATUS.UXL field in RV64 and RV128 when U-Mode is supported",
               Lambda (["old_val", "write_val"],
                       XLEN_code (Fval ("XLEN"))),
-              "WARL function to transform MSTATUS.UXL field in RV64 and RV128 when U-Mode is supported",
               [ And2 (Ne (Fval ("XLEN"), 32),
                       Eq (Fval ("Extn_U"), True)) ],
               Legal_WARL_fn ("MSTATUS_UXL", v)),
 
     mk_ftype ("MSTATUS_XS_wired_to_0",
-              True,
               "MSTATUS.XL fiels id wired to 0 (no additional user-mode extensions",
+              True,
               [],
               Is_bool (v)),
 
     mk_ftype ("MSTATUS_TW_timeout",
-              0,
               "Timeout in nanoseconds when MSTATUS.TW=1 and WFI is executed in S-mode",
+              0,
               [ Eq (Fval ("Extn_S"), True) ],
               Is_int (v))
 ])
@@ -319,20 +319,20 @@ ftypes.extend ([
 
 ftypes.extend ([
     mk_ftype ("MIDELEG_WARL_fn",
+              "WARL function to transform values written to MIDELEG (requires U)",
               Lambda (["old_val", "write_val"],
                       If (Eq (Fval ("Extn_U"), False),
                           0,
                           "write_val")),
-              "WARL function to transform values written to MIDELEG (requires U)",
               [],
               Legal_WARL_fn ("MIDELEG", v)),
 
     mk_ftype ("MEDELEG_WARL_fn",
+              "WARL function to transform values written to MEDELEG (requires U)",
               Lambda (["old_val", "write_val"],
                       If (Eq (Fval ("Extn_U"), False),
                           0,
                           "write_val")),
-              "WARL function to transform values written to MEDELEG (requires U)",
               [],
               Legal_WARL_fn ("MEDELEG", v)),
 ])
@@ -342,6 +342,7 @@ ftypes.extend ([
 
 ftypes.extend ([
     mk_ftype ("MIP_WARL_fn",
+              "WARL function to transform values written to MIP",
               Lambda (["old_val", "write_val"],
                       Bit_And ("write_val",
                                If (And2 (Eq (Fval ("Extn_S"), True),
@@ -350,11 +351,11 @@ ftypes.extend ([
                                    If (Eq (Fval ("Extn_U"), True),
                                        0x111,
                                        0)))),
-              "WARL function to transform values written to MIP",
               [],
               Legal_WARL_fn ("MIP", v)),
 
     mk_ftype ("MIE_WARL_fn",
+              "WARL function to transform values written to MIE",
               Lambda (["old_val", "write_val"],
                       Bit_And ("write_val",
                                If (And2 (Eq (Fval ("Extn_S"), True),
@@ -363,7 +364,6 @@ ftypes.extend ([
                                    If (Eq (Fval ("Extn_U"), True),
                                        0x999,
                                        0x888)))),
-              "WARL function to transform values written to MIE",
               [],
               Legal_WARL_fn ("MIE", v))
 ])
@@ -373,20 +373,20 @@ ftypes.extend ([
 
 ftypes.extend ([
     mk_ftype ("MSIP_address",
-              None,
               "Address for memory-mapped MSIP register",
+              None,
               [],
               Is_int (v)),
 
     mk_ftype ("MTIME_address",
-              None,
               "Address for memory-mapped MTIME register",
+              None,
               [],
               Is_int (v)),
 
     mk_ftype ("MTIMECMP_address",
-              None,
               "Address for memory-mapped MTIMECMP register",
+              None,
               [],
               Is_int (v))
 ])
@@ -396,80 +396,80 @@ ftypes.extend ([
 
 ftypes.extend ([
     mk_ftype ("MTVEC_is_read_only",
-              None,
               "MTVEC is hardwired to a read-only value",
+              None,
               [],
               Is_bool (v)),
 
     mk_ftype ("MTVEC_reset_value",
-              0x100,
               "MTVEC reset value (if MTVEC is not read-only)",
+              0x100,
               [ Eq (Fval ("MTVEC_is_read_only"), False) ],
               And2 (Is_int (v),
                     Le (v, Minus  (max_XLEN, 3)))),
 
     mk_ftype ("MTVEC_read_only_value",
-              None,
               "MTVEC value (if MTVEC is read-only)",
+              None,
               [ Eq (Fval ("MTVEC_is_read_only"), True) ],
               And2 (Is_int (v),
                     Le (v, Minus (max_XLEN, 3)))),
 
     mk_ftype ("MTVEC_alignment_multiplier",
-              1,
               "Additional alignment constraint on MTVEC when MODE is 'vectored' (multiplier x XLEN)",
+              1,
               [ Eq (Fval ("MTVEC_is_read_only"), False) ],
               And2 (Is_int (v),
                     In (v, [1,2,4]))),
 
     mk_ftype ("MTVEC_BASE_WARL_fn",
-              Lambda (["old_val", "write_val"], "write_val"),
               "WARL function to transform values written to MTVEC BASE field",
+              Lambda (["old_val", "write_val"], "write_val"),
               [ Eq (Fval ("MTVEC_is_read_only"), False) ],
               Legal_WARL_fn ("MTVEC_BASE", v)),
 
     mk_ftype ("MTVEC_MODE_WARL_fn",
-              Lambda (["old_val", "write_val"], "write_val"),
               "WARL function to transform values written to MTVEC MODE field",
+              Lambda (["old_val", "write_val"], "write_val"),
               [ Eq (Fval ("MTVEC_is_read_only"), False) ],
               Legal_WARL_fn ("MTVEC_BASE", v)),
 
     mk_ftype ("STVEC_is_read_only",
-              None,
               "STVEC is hardwired to a read-only value (requires S)",
+              None,
               [ Eq (Fval ("Extn_S"), True) ],
               Is_bool (v)),
 
     mk_ftype ("STVEC_BASE_WARL_fn",
-              Lambda (["old_val", "write_val"], "write_val"),
               "WARL function to transform values written to STVEC BASE field (requires S)",
+              Lambda (["old_val", "write_val"], "write_val"),
               [ Eq (Fval ("Extn_S"), True),
                 Eq (Fval ("STVEC_is_read_only"), False) ],
               Legal_WARL_fn ("STVEC_MODE", v)),
 
     mk_ftype ("STVEC_MODE_WARL_fn",
-              Lambda (["old_val", "write_val"], "write_val"),
               "WARL function to transform values written to STVEC MODE field (requires S)",
+              Lambda (["old_val", "write_val"], "write_val"),
               [ Eq (Fval ("Extn_S"), True),
                 Eq (Fval ("STVEC_is_read_only"), False) ],
               Legal_WARL_fn ("STVEC_MODE", v)),
 
     mk_ftype ("UTVEC_is_read_only",
-              None,
               "UTVEC is hardwired to a read-only value (requires N)",
+              None,
               [ Eq (Fval ("Extn_N"), True) ],
               Is_bool (v)),
 
     mk_ftype ("UTVEC_BASE_WARL_fn",
-              Lambda (["old_val", "write_val"], "write_val"),
               "WARL function to transform values written to UTVEC BASE field (requires U, N)",
+              Lambda (["old_val", "write_val"], "write_val"),
               [ Eq (Fval ("Extn_N"), True),
                 Eq (Fval ("UTVEC_is_read_only"), False) ],
               Legal_WARL_fn ("UTVEC_BASE", v)),
 
     mk_ftype ("UTVEC_MODE_WARL_fn",
-              Lambda (["old_val", "write_val"], "write_val"),
               "WARL function to transform values written to UTVEC MODE field (requires U, N)",
+              Lambda (["old_val", "write_val"], "write_val"),
               [ Eq (Fval ("Extn_N"), True),
                 Eq (Fval ("UTVEC_is_read_only"), False) ],
               Legal_WARL_fn ("UTVEC_MODE", v)),
@@ -481,38 +481,38 @@ ftypes.extend ([
 
 ftypes.extend ([
     mk_ftype ("MHPM3_exists",
-              False,
               "mhpmcounter3 exists and mhpmevent3 can be written",
+              False,
               [],
               Is_bool (v)),
     mk_ftype ("MHPMEVENT3_WARL_fn",
-              Lambda (["old_val", "write_val"], "write_val"),
               "WARL function to transform values written to MHPMEVENT3",
+              Lambda (["old_val", "write_val"], "write_val"),
               [ Eq (Fval ("MHPM3_exists"), True) ],
               Legal_WARL_fn ("MHPMEVENT3", v)),
 
     mk_ftype ("MHPM4_exists",
-              False,
               "mhpmcounter4 exists and mhpmevent4 can be written",
+              False,
               [],
               Is_bool (v)),
     mk_ftype ("MHPMEVENT4_WARL_fn",
-              Lambda (["old_val", "write_val"], "write_val"),
               "WARL function to transform values written to MHPMEVENT4",
+              Lambda (["old_val", "write_val"], "write_val"),
               [ Eq (Fval ("MHPM4_exists"), True) ],
               Legal_WARL_fn ("MHPMEVENT4", v)),
 
     # ... TODO: and so on for HPMs 5..31
 
     mk_ftype ("MCOUNTEREN_WARL_fn",
-              Lambda (["old_val", "write_val"], 0),
               "WARL function to transform values written to MCOUNTEREN",
+              Lambda (["old_val", "write_val"], 0),
               [ Eq (Fval ("Extn_U"), True) ],
               Legal_WARL_fn ("MCOUNTEREN", v)),
 
     mk_ftype ("SCOUNTEREN_WARL_fn",
-              Lambda (["old_val", "write_val"], 0),
               "WARL function to transform values written to SCOUNTEREN",
+              Lambda (["old_val", "write_val"], 0),
               [ Eq (Fval ("Extn_S"), True) ],
               Legal_WARL_fn ("SCOUNTEREN", v))
 ])
@@ -522,8 +522,8 @@ ftypes.extend ([
 
 ftypes.extend ([
     mk_ftype ("MEPC_WARL_fn",
-              Lambda (["old_val", "write_val"], "write_val"),
               "WARL function to transform values written to MEPC",
+              Lambda (["old_val", "write_val"], "write_val"),
               [],
               Legal_WARL_fn ("MEPC", v))
 ])
@@ -533,14 +533,14 @@ ftypes.extend ([
 
 ftypes.extend ([
     mk_ftype ("MCAUSE_on_reset",
-              None,
               "Value in mcause CSR on reset",
+              None,
               [],
               Is_int (v)),
 
     mk_ftype ("MCAUSE_on_NMI",
-              0,
               "Value in mcause CSR on Non-maskable interrupt",
+              0,
               [],
               Is_int (v))
 ])
@@ -550,24 +550,24 @@ ftypes.extend ([
 
 ftypes.extend ([
     mk_ftype ("SATP_MODE_WARL_fn",
-              Lambda (["old_val", "write_val"], "write_val"),
               "WARL function to transform values written to SATP.MODE",
+              Lambda (["old_val", "write_val"], "write_val"),
               [ Eq (Fval ("Extn_S"), True) ],
               Legal_WARL_fn ("SATP_MODE", v))
 ])
 
 ftypes.extend ([
     mk_ftype ("SATP_ASID_WARL_fn",
-              Lambda (["old_val", "write_val"], 0),
               "WARL function to transform values written to SATP.ASID",
+              Lambda (["old_val", "write_val"], 0),
               [ Eq (Fval ("Extn_S"), True) ],
               Legal_WARL_fn ("SATP_ASID", v))
 ])
 
 ftypes.extend ([
     mk_ftype ("SATP_PPN_WARL_fn",
-              Lambda (["old_val", "write_val"], "write_val"),
               "WARL function to transform values written to SATP.PPN",
+              Lambda (["old_val", "write_val"], "write_val"),
               [ Eq (Fval ("Extn_S"), True) ],
               Legal_WARL_fn ("SATP_PPN", v))
 ])
@@ -577,41 +577,41 @@ ftypes.extend ([
 
 ftypes.extend ([
     mk_ftype ("SATP_WARL_fn",
-              Lambda (["old_val", "write_val"], "write_val"),
               "WARL function to transform values written to SATP",
+              Lambda (["old_val", "write_val"], "write_val"),
               [ Eq (Fval ("Extn_S"), True) ],
               Legal_WARL_fn ("SATP", v)),
 
     mk_ftype ("VM_Sv32",
-              True,
               "Virtual Memory (address-translation) scheme Sv32 (requires RV32, S)",
+              True,
               [ Eq (Fval ("XLEN"), 32),
                 Eq (Fval ("Extn_S"), True) ],
               Eq (v, True)),
 
     mk_ftype ("VM_Sv39",
-              True,
               "Virtual Memory (address-translation) scheme Sv39 (requires RV64, S)",
+              True,
               [ Eq (Fval ("XLEN"), 64),
                 Eq (Fval ("Extn_S"), True) ],
               Eq (v, True)),
 
     mk_ftype ("VM_Sv48",
-              False,
               "Virtual Memory (address-translation) scheme Sv48 (requires RV64, S, Sv39)",
+              False,
               [ Eq (Fval ("XLEN"), 64),
                 Eq (Fval ("VM_Sv39"), True) ],
               Eq (v, True)),
 
     mk_ftype ("PTE_A_trap",
-              None,
               "Trap when PTE.A is zero",
+              None,
               [ Eq (Fval ("Extn_S"), True) ],
               Is_bool (v)),
 
     mk_ftype ("PTE_D_trap",
-              None,
               "Trap when PTE.D is zero on a store access",
+              None,
               [ Eq (Fval ("Extn_S"), True) ],
               Is_bool (v))
 ])
@@ -621,51 +621,51 @@ ftypes.extend ([
 
 ftypes.extend ([
     mk_ftype ("Reset_PC",
-              None,
               "Value of PC on reset",
+              None,
               [],
               And2 (Is_int (v),
                     Le (v, max_XLEN))),
 
     mk_ftype ("Traps_on_unaligned_mem_access",
-              None,
               "Traps on unaligned memory accesses",
+              None,
               [],
               Is_bool (v)),
 
     mk_ftype ("WFI_is_nop",
-              None,
               "WFI is a no-op, i.e., CPU does not actually pause waiting for interrupt",
+              None,
               [],
               Is_bool (v)),
 
     mk_ftype ("NMI_address",
-              None,
               "Address of handler for non-maskable interrupts",
+              None,
               [],
               Is_int (v)),
 
     mk_ftype ("Num_PMP_registers",
-              0,
               "Number of Physical Memory Protection Registers implemented",
+              0,
               [],
               Is_int (v)),
 
     mk_ftype ("CYCLE_defined",
-              None,
               "CYCLE CSR is defined (else causes Machine-mode trap; can be emulated)",
+              None,
               [],
               Is_bool (v)),
 
     mk_ftype ("TIME_defined",
-              None,
               "TIME CSR is defined (else causes Machine-mode trap; can be emulated)",
+              None,
               [],
               Is_bool (v)),
 
     mk_ftype ("INSTRET_defined",
-              None,
               "INSTRET CSR is defined (else causes Machine-mode trap; can be emulated)",
+              None,
               [],
               Is_bool (v))
 ])
@@ -675,8 +675,8 @@ ftypes.extend ([
 
 ftypes.extend ([
     mk_ftype ("LR_SC_grain",
-              4,
               "Aligned power-of-2 address granularity for LR/SC locks",
+              4,
               [ Eq (Fval ("Extn_A"), True) ],
               And2 (Is_int (v),
                     Is_power_of_2 (v)))

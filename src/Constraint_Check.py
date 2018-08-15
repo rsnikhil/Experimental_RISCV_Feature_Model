@@ -84,10 +84,11 @@ def check_ftype_constrint (verbosity, ftypes, features, ftype):
     v = select_fval (features, RFT.ftype_name (ftype), default_val)
     debug_print (verbosity, "Feature value: {0}\n".format (v))
 
+    false_preconds = []
     preconds = True
     for precond in RFT.ftype_preconds (ftype):
         debug_print (verbosity, "---- Checking precondition:\n")
-        if (verbosity > 0): pprint.pprint (precond, indent=4)
+        if (verbosity > 0): pprint.pprint (precond, indent = 4)
 
         precond_v = eval (verbosity, ftypes, features, ftype, prefix, precond)
 
@@ -96,11 +97,12 @@ def check_ftype_constrint (verbosity, ftypes, features, ftype):
         else:
             debug_print (verbosity, "Precondition is FALSE\n")
             preconds = False
+            false_preconds.append (precond)
 
     constraint  = RFT.ftype_constraint (ftype)
     feature_out = None
     debug_print (verbosity, "---- Checking constraint:")
-    if (verbosity > 0): pprint.pprint (constraint, indent=4)
+    if (verbosity > 0): pprint.pprint (constraint, indent = 4)
     if preconds:
         x           = eval (verbosity, ftypes, features, ftype, prefix, constraint)
         feature_out = (RFT.ftype_name (ftype), v)
@@ -111,7 +113,7 @@ def check_ftype_constrint (verbosity, ftypes, features, ftype):
                                                                                            RFT.ftype_descr (ftype)))
             sys.stdout.write ("  Feature value is {0}\n".format (v))
             sys.stdout.write ("  Constraint is: ")
-            pprint.pprint (RFT.ftype_constraint (ftype), indent=4)
+            pprint.pprint (RFT.ftype_constraint (ftype), indent = 4)
 
     else:
         x = True
@@ -120,6 +122,9 @@ def check_ftype_constrint (verbosity, ftypes, features, ftype):
         v1 = select_fval (features, RFT.ftype_name (ftype), None)
         if v1 != None:
             sys.stdout.write ("Feature '{0}':{1}    is not relevant\n".format (RFT.ftype_name (ftype), v1))
+            sys.stdout.write ("  The following preconditions are false\n")
+            for precond in false_preconds:
+                pprint_at_indent (sys.stdout, precond, 4)
 
     return (x, feature_out)
 
@@ -154,7 +159,7 @@ def eval (verbosity, ftypes, features, ftype, prefix, e):
     # Assertion check that it's not a leaf term
     if type (e) != tuple:
         sys.stderr.write ("INTERNAL ERROR: unknown form of expression\n")
-        pprint.pprint (e, indent=4)
+        pprint.pprint (e, indent = 4)
         sys.exit (1)
 
     op = e [0]
@@ -231,7 +236,7 @@ def apply (verbosity, ftypes, features, ftype, prefix, op, v_args):
 
     else:
         sys.stderr.write ("ERROR: unknown form of expression\n")
-        pprint.pprint ([op] + v_args, indent=4)
+        pprint.pprint ([op] + v_args, indent = 4)
         sys.exit (1)
 
     return debug_trace (verbosity, prefix, result)
@@ -313,9 +318,9 @@ def debug_trace (verbosity, prefix, e):
         sys.stdout.write (prefix); print (e)    
     return e
 
-def pprint_at_indent (x, indent):
-    s = pprint.pformat (x, indent=4)
+def pprint_at_indent (stream, x, indent):
+    s = pprint.pformat (x, indent = 4)
     for line in s.splitlines ():
-        sys.stdout.write ("        {0}\n".format (line))
+        stream.write ("        {0}\n".format (line))
 
 # ================================================================

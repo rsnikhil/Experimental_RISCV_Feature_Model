@@ -36,6 +36,8 @@ In this repo you will find:
 - `RV32IMU.yaml` and `RV64IMAUS.yaml`: two sample particular feature lists
     for two particular implementations.
 
+See also some presentation slides in `Formal_Feature_Model.pdf`
+
 If you are only reading, then the above files are enough.
 
 ----------------------------------------------------------------

@@ -84,28 +84,35 @@ def main (argv = None):
 
     # If constraints met, write out augmented feature list
     if all_pass:
-        write_output_features (std_feature_filename,    "Standard features",     std_features_out)
-        write_output_features (nonstd_feature_filename, "Non-standard features", nonstd_features)
+        sys.stdout.write ("---------------- All constraints ok: writing output files\n")
+
+        sys.stdout.write ("Writing {0} standard features to: {1}\n".format (len (std_features_out),
+                                                                            std_feature_filename))
+        with open (std_feature_filename, 'w') as stream:
+            write_output_features (stream, std_features_out, "Standard features")
+
+        sys.stdout.write ("Writing {0} non-standard features to: {1}\n".format (len (nonstd_features),
+                                                                                nonstd_feature_filename))
+        with open (nonstd_feature_filename, 'w') as stream:
+            write_output_features (stream, nonstd_features, "Non-standard features")
+
+        if verbosity > 0:
+            write_output_features (sys.stdout,  std_features_out, "Standard features")
+            write_output_features (sys.stdout,  nonstd_features, "Non-standard features")
 
     return 0
 
-def write_output_features (filename, title, features):
-    with open (filename, 'w') as stream:
-        sys.stdout.write ("---------------- {0} to file {1}\n".format (title, filename))
-        stream.write ("# ---------------- {0}\n".format (title))
-        for (name, val) in features:
-            if (type (val) == str) or (type (val) == bool) or (type (val) == list):
-                sys.stdout.write ("    '{0}': '{1}'\n".format (name, val))
-                stream.write ("{0}: '{1}'\n".format (name, val))
-            elif type (val) == int:
-                sys.stdout.write ("    '{0}': 0x{1:x}\n".format (name, val))
-                stream.write ("{0}: {1}\n".format (name, val))
-            else:
-                sys.stdout.write ("    '{0}':\n".format (name))
-                CC.pprint_at_indent (val, 8)
-                stream.write ("{0}: {1}\n".format (name, val))
+def write_output_features (stream, features, title):
+    stream.write ("# ---------------- {0}\n".format (title))
+    for (name, val) in features:
+        if (type (val) == str) or (type (val) == bool) or (type (val) == list):
+            stream.write ("{0}: '{1}'\n".format (name, val))
+        elif type (val) == int:
+            stream.write ("{0}: {1}\n".format (name, val))
+        else:
+            stream.write ("'{0}':\n".format (name))
+            CC.pprint_at_indent (stream, val, 4)
     
-
 # ================================================================
 # For non-interactive invocations, call main() and use its return value
 # as the exit code.

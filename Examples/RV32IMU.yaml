@@ -1,29 +1,22 @@
-# Feature list for implementation "foo": RV64IMAUS
+# Feature list for implementation "foo": RV32IMU
 
-# Non-standard
+# Standard
 
 User_Spec_Version: "2.2"
 Privilege_Spec_Version: "1.10"
-XLEN: 64
+XLEN: 32
 Traps_on_unaligned_mem_access: True
 Reset_PC: 0x1000
 WFI_is_nop: False
 MTVEC_is_read_only: False
-MTVEC_WARL_fn: ["Lambda", ["write_val", "old_val"], ["Bit_and", "write_val", 0xFFFF_FFFF_FFFF_FFFC]]
+MTVEC_WARL_fn: ["Lambda", ["write_val", "old_val"], ["Bit_and", "write_val", 0xFFFC]]
 NMI_address: 0x200
 MSIP_address: 0x_0200_0000
 MTIME_address: 0x_0200_bFF8
 MTIMECMP_address: 0x_0200_4000
 MCAUSE_on_reset: 0
 
-Extn_S: True
-STVEC_is_read_only: False
-VM_Sv48: True
-PTE_A_trap: True
-PTE_D_trap: True
-
 Extn_U: True
-
 CYCLE_defined: True
 TIME_defined: False
 INSTRET_defined: True
