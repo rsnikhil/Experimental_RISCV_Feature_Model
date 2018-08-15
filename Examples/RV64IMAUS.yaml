@@ -28,6 +28,12 @@ CYCLE_defined: True
 TIME_defined: False
 INSTRET_defined: True
 
+address_map: [ [     0x1000,      0x1000, "MEM", "RO",   "Boot ROM"],
+               [0x0200_0000,      0xC000, "IO",  "RW",   "Timer, MSIP"],
+               [0x8000_0000, 0x1000_0000, "MEM", "RW",   "Main Mem"],
+               [0xC000_0000,        0x80, "IO",  "RW",   "UART"]
+             ]
+
 # Non-standard
 
 M_implem: fast

@@ -52,6 +52,7 @@ max_XLEN = "max_XLEN"   # Evaluates to 0xFFFF_FFFF or 0xFFFF_FFFF_FFFF_FFFF depe
 def Is_bool (x):         return ("Is_bool", x)
 def Is_int (x):          return ("Is_int", x)
 def Is_string (x):       return ("Is_string", x)
+def Is_address_map (x):  return ("Is_address_map", x)
 def Are_hartids (x):     return ("Are_hartids", x)
 
 def Not  (x):            return ("Not", x)
@@ -674,6 +675,12 @@ ftypes.extend ([
 # Features: Memory system implementation choices
 
 ftypes.extend ([
+    mk_ftype ("address_map",
+              "List of (base, size, MEM/IO, RO/RW/WO, description)",
+              None,
+              [],
+              Is_address_map (v)),
+
     mk_ftype ("LR_SC_grain",
               "Aligned power-of-2 address granularity for LR/SC locks",
               4,

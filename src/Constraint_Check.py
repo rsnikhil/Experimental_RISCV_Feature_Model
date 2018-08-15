@@ -201,6 +201,7 @@ def apply (verbosity, ftypes, features, ftype, prefix, op, v_args):
     if   op == "Is_bool":        result = (type (v_args [0]) == bool)
     elif op == "Is_int":         result = (type (v_args [0]) == int)
     elif op == "Is_string":      result = (type (v_args [0]) == str)
+    elif op == "Is_address_map": result = is_address_map (v_args [0])
     elif op == "Are_hartids":    result = are_hartids (v_args [0])
 
     elif op == "Bit_Not":        result = (~ v_args [0])
@@ -240,6 +241,17 @@ def apply (verbosity, ftypes, features, ftype, prefix, op, v_args):
         sys.exit (1)
 
     return debug_trace (verbosity, prefix, result)
+
+# ----------------------------------------------------------------
+# is_address_map: xs must be
+# - non-empty list of 5-lists (base:int, size:int, addr_type:str, addr_ops:str, description:str)
+# - base and sizes are all positive
+# - addr_type is string MEM or IO
+# - addr_ops  is string RO, RW or WO
+# - addr ranges are disjoint
+
+def is_address_map (xs):
+    return True    # TODO: see above checks
 
 # ----------------------------------------------------------------
 # xs must be a non-empty list of increasing (not necessarily contiguous) integers starting with 0

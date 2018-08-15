@@ -24,7 +24,7 @@ options such as:
 
 In this repo you will find:
 
-- `RISCV_Feature_Types.py`: a specification of all possible features
+- `src/RISCV_Feature_Types.py`: a specification of all possible features
     and their constraints (allowed values, preconditions, dependence
     on other features, etc.).  Please read the extensive comments in
     the file for how feature types are represented, and semantics, and
@@ -33,8 +33,7 @@ In this repo you will find:
 
     Note: currently contains many but not all features.
 
-- `RV32IMU.yaml` and `RV64IMAUS.yaml`: two sample particular feature lists
-    for two particular implementations.
+- Several example input YAML files in the `Examples/` directory.
 
 See also some presentation slides in `Formal_Feature_Model.pdf`
 
@@ -51,7 +50,9 @@ installation has:
 
 Then, you can execute like this:
 
-        ./Main.py  RV32IMU.yaml    <optional verbosity of 1, 2, ..>
+        $ ./Main.py  <feature_list_file (foo.yaml)>    <optional verbosity of 1, 2, ..>
+
+        $ make demo    will do the above on Examples/eg1.yaml
 
 This will:
 
@@ -59,8 +60,8 @@ This will:
  - separate the constraints into standard (present in `RISCV_Feature_Types`) and non-standard features,
  - check all constraints (on standard features)
  - write out two files:
-     - `RV32IMU_std.yaml` which "completes" the given standard features with all defaults
-     - `RV32IMU_nonstd.yam` which contains all the non-standard features (as-is from the input).
+     - `foo_std.yaml` which "completes" the given standard features with all defaults
+     - `foo_nonstd.yam` which contains all the non-standard features (as-is from the input).
 
    These latter two files can be read by a formal ISA spec or universal
    simulator to contrain its behavior.
