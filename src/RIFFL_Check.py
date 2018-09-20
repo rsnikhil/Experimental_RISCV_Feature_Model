@@ -3,24 +3,120 @@
 # Copyright (c) 2018 Rishiyur S. Nikhil
 
 # ================================================================
-# RISC-V feature list constraint checker
+
+usage_line = \
+"Usage:    CMD    <feature_list.yaml>  <optional_verbosity>\n"
+
+help_lines = \
+"  Reads a YAML file containing a feature-list for a RISC-V implementation\n" \
+"  and checks for consistency.\n" \
+"  If consistent, writes an output feature-list to a YAML file consisting of\n" \
+"    - features and values from the input for known features, and\n" \
+"    - features and values omitted in the input that have default values, and\n" \
+"    - features and values from the input that were not recognized (passed through as-is).\n"
 
 # ================================================================
 # Imports of Python libraries
 
 import sys
+import os
+import yaml
 import pprint
 
 # ================================================================
 # Imports of project files
 
-import RISCV_Feature_Types as RFT
+import RIFFL_Decls as RD
+
+# ================================================================
+
+def main (argv = None):
+    sys.stdout.write ("Use --help or -h for help\n")
+
+    if ((len (argv) == 1) or
+        (argv [1] == "--help") or (argv [1] == "-h") or
+        ((len (argv) != 2) and (len (argv) != 3))):
+
+        sys.stdout.write (usage_line.replace ("CMD", argv [0]))
+        sys.stdout.write ("\n")
+        sys.stdout.write (help_lines.replace ("CMD", argv [0]))
+        sys.stdout.write ("\n")
+        return 0
+
+    # Read input feature list from YAML file
+    with open (argv [1], 'r') as stream:
+        try:
+            feature_dict = yaml.load (stream)
+
+        except yaml.YAMLError as exc:
+            sys.stdout.write ("ERROR: unable to open YAML input file: {0}\n".format (argv [1]))
+            sys.stdout.write ("    Exception: "); print (exc)
+            return 0
+    (filename, ext) = os.path.splitext (argv [1])
+    output_feature_filename    = filename + "_checked"    + ext
+
+    # Set verbosity if requested
+    verbosity = 0
+    if (len (argv) == 3):
+        verbosity = int (argv [2])
+
+    # Echo feature list, for info
+    print ("---------------- Input features:")
+    pprint.pprint (feature_dict, indent=4)
+
+    # List all feature types if verbose
+    if (verbosity > 1):
+        sys.stdout.write ("All feature types:\n")
+        for ftype in RD.ftypes:
+            print ("----------------")
+            print (RD.ftype_name (ftype), ": default ", RD.ftype_default (ftype), "    # ", RD.ftype_descr (ftype))
+            pprint.pprint (RD.ftype_constraint (ftype), indent=4)
+        sys.stdout.write ("End of all feature specs\n")
+
+    # Split input features into standard and non-standard features (and convert from dict to list)
+    (std_features, nonstd_features) = split_std_and_nonstd (RD.ftypes, feature_dict)
+
+    # Check ALL constraints
+    sys.stdout.write ("---------------- Checking all constraints\n")
+    (all_pass, std_features_out) = check_all_constraints (verbosity, RD.ftypes, std_features)
+
+    # If constraints met, write output file (input feature list + defaulted features)
+    if all_pass:
+        sys.stdout.write ("---------------- All constraints ok: writing output file\n".format (output_feature_filename))
+        with open (output_feature_filename, 'w') as stream:
+            sys.stdout.write ("Writing {0} standard features\n".format (len (std_features_out)))
+            write_output_features (stream, std_features_out, "Standard features")
+
+            sys.stdout.write ("Writing {0} non-standard features\n".format (len (nonstd_features)))
+            write_output_features (stream, nonstd_features, "Non-standard features")
+
+        if verbosity > 0:
+            write_output_features (sys.stdout,  std_features_out, "Standard features")
+            write_output_features (sys.stdout,  nonstd_features, "Non-standard features")
+
+    return 0
+
+def write_output_features (stream, features, title):
+    stream.write ("# ---------------- {0}\n".format (title))
+    for (name, val) in features:
+        if (type (val) == str) or (type (val) == bool) or (type (val) == list):
+            stream.write ("{0}: '{1}'\n".format (name, val))
+        elif type (val) == int:
+            stream.write ("{0}: {1}\n".format (name, val))
+        else:
+            stream.write ("'{0}':\n".format (name))
+            pprint_at_indent (stream, val, 4)
+    
+# ****************************************************************
+# ****************************************************************
+# ****************************************************************
+# RISC-V feature list constraint checker
 
 # ================================================================
 # Select feature type with given name from list of feature types
 
 def select_ftype (ftypes, name):
-    ftypes1 = [ftype for ftype in ftypes if RFT.ftype_name (ftype) == name]
+    ftypes1 = [ftype for ftype in ftypes if RD.ftype_name (ftype) == name]
     if len (ftypes1) == 0:
         return None
     elif len (ftypes1) == 1:
@@ -75,18 +171,18 @@ def check_all_constraints (verbosity, ftypes, features):
 
 def check_ftype_constrint (verbosity, ftypes, features, ftype):
     debug_print (verbosity, "================================\n")
-    debug_print (verbosity, "Checking ftype {0}    {1}\n".format (RFT.ftype_name (ftype), RFT.ftype_descr (ftype)))
+    debug_print (verbosity, "Checking ftype {0}    {1}\n".format (RD.ftype_name (ftype), RD.ftype_descr (ftype)))
 
     prefix = ""
 
-    default_val = eval (verbosity, ftypes, features, ftype, prefix, RFT.ftype_default (ftype))
+    default_val = eval (verbosity, ftypes, features, ftype, prefix, RD.ftype_default (ftype))
 
-    v = select_fval (features, RFT.ftype_name (ftype), default_val)
+    v = select_fval (features, RD.ftype_name (ftype), default_val)
     debug_print (verbosity, "Feature value: {0}\n".format (v))
 
     false_preconds = []
     preconds = True
-    for precond in RFT.ftype_preconds (ftype):
+    for precond in RD.ftype_preconds (ftype):
         debug_print (verbosity, "---- Checking precondition:\n")
         if (verbosity > 0): pprint.pprint (precond, indent = 4)
 
@@ -99,29 +195,29 @@ def check_ftype_constrint (verbosity, ftypes, features, ftype):
             preconds = False
             false_preconds.append (precond)
 
-    constraint  = RFT.ftype_constraint (ftype)
+    constraint  = RD.ftype_constraint (ftype)
     feature_out = None
     debug_print (verbosity, "---- Checking constraint:")
     if (verbosity > 0): pprint.pprint (constraint, indent = 4)
     if preconds:
         x           = eval (verbosity, ftypes, features, ftype, prefix, constraint)
-        feature_out = (RFT.ftype_name (ftype), v)
+        feature_out = (RD.ftype_name (ftype), v)
         if x:
             debug_print (verbosity, "Constraint evaluates TRUE\n")
         else:
-            sys.stdout.write ("Constraint evaluates FALSE for ftype '{0}' ({1})\n".format (RFT.ftype_name (ftype),
-                                                                                           RFT.ftype_descr (ftype)))
+            sys.stdout.write ("Constraint evaluates FALSE for ftype '{0}' ({1})\n".format (RD.ftype_name (ftype),
+                                                                                           RD.ftype_descr (ftype)))
             sys.stdout.write ("  Feature value is {0}\n".format (v))
             sys.stdout.write ("  Constraint is: ")
-            pprint.pprint (RFT.ftype_constraint (ftype), indent = 4)
+            pprint.pprint (RD.ftype_constraint (ftype), indent = 4)
 
     else:
         x = True
         debug_print (verbosity, "Constraint trivially TRUE\n")
 
-        v1 = select_fval (features, RFT.ftype_name (ftype), None)
+        v1 = select_fval (features, RD.ftype_name (ftype), None)
         if v1 != None:
-            sys.stdout.write ("Feature '{0}':{1}    is not relevant\n".format (RFT.ftype_name (ftype), v1))
+            sys.stdout.write ("Feature '{0}':{1}    is not relevant\n".format (RD.ftype_name (ftype), v1))
             sys.stdout.write ("  The following preconditions are false\n")
             for precond in false_preconds:
                 pprint_at_indent (sys.stdout, precond, 4)
@@ -136,7 +232,7 @@ def eval (verbosity, ftypes, features, ftype, prefix, e):
 
     # Leaf term: Special variables 'v'
     if e == "v":
-        v = select_fval (features, RFT.ftype_name (ftype), RFT.ftype_default (ftype))
+        v = select_fval (features, RD.ftype_name (ftype), RD.ftype_default (ftype))
         return debug_trace (verbosity, prefix + "<== Eval ", v)
 
     if e == "max_XLEN":
@@ -228,7 +324,7 @@ def apply (verbosity, ftypes, features, ftype, prefix, op, v_args):
 
     elif op == "Fval":
         ftype = select_ftype (ftypes, v_args [0])
-        default = RFT.ftype_default (ftype)
+        default = RD.ftype_default (ftype)
         result = select_fval (features, v_args [0], default)
 
     elif op == "XLEN_code":      result = XLEN_code (v_args [0])
@@ -339,4 +435,12 @@ def pprint_at_indent (stream, x, indent):
     for line in s.splitlines ():
         stream.write ("        {0}\n".format (line))
 
-# ================================================================
+# ****************************************************************
+# ****************************************************************
+# ****************************************************************
+
+# For non-interactive invocations, call main() and use its return value
+# as the exit code.
+
+if __name__ == '__main__':
+  sys.exit (main (sys.argv))

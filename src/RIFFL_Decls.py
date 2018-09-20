@@ -9,8 +9,14 @@
 
 # Terminolgy:
 #  Feature types: The contents of this file.
-#                 Each feature type describes the set of values for that feature,
-#                 and a constraint on those values that may involve other features.
+#                 Each feature type describes the set of allowed
+#                 values for that feature.  This is expressed as a
+#                 predicate (contraint)-- a Boolean-valued
+#                 expression-- that identifies acceptable values.  The
+#                 contraint may involve the values of other features,
+#                 because only certain combinations of features are
+#                 meaningful (e.g., if the virtual memory feature is
+#                 "Sv39", then the XLEN feature must be "RV64").
 #
 #  Feature list:  A separate YAML file of name-value pairs giving
 #                 specific choices of values for features.
@@ -22,11 +28,18 @@ import sys
 import pprint
 
 # ================================================================
+# Each 'feature type'
+
+# 'Expressions' are used for the prerequisite, constraint and default
+# in a feature type.
+
+# These expressions are similar to, but less expressive than
+# expressions in a full-blown programming language.
+
+
 # An 'Expression' is:
 #   - a FIRST-ORDER TERM described below
-#   - an arity-2 lambda whose body is a FIRST-ORDER TERM
-
-# Expressions are used for the prerequisite, constraint and default in a feature type.
+#   - an arity-2 lambda whose body is a FIRST-ORDER TERM (no recursion)
 
 # Note: for quick experimentation and prototyping we've here exploited
 # Python syntax and data structres, but this is conceptually a
@@ -38,11 +51,11 @@ import pprint
 # (abstract syntax tree).
 
 # ---- Leaf terms: literal constants
-# Literal Python term: None    (used to signal absence of a default)
+# Literal Python term: None    (used only to signal absence of a default)
 # Literal Python boolean terms: True, False
 # Literal Python strings: "foo" or 'foo'
 # Literal Python integers: 23
-# Literal flat (not nested) Python lists of constants
+# Literal flat (not nested) Python lists of constants (e.g., for address maps)
 
 # ---- Leaf terms: variables (just a few standard variables): 
 v        = "v"          # Evaluates to the value of this ftype's feature (see below)
@@ -602,7 +615,7 @@ ftypes.extend ([
               False,
               [ Eq (Fval ("XLEN"), 64),
                 Eq (Fval ("VM_Sv39"), True) ],
-              Eq (v, True)),
+              Is_bool (v)),
 
     mk_ftype ("PTE_A_trap",
               "Trap when PTE.A is zero",

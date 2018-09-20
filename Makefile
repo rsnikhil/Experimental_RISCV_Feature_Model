@@ -9,7 +9,13 @@ EG ?= eg1
 
 .PHONY: demo
 demo:
-	src/Main.py  Examples/$(EG).yaml
+	src/RIFFL_Check.py  Examples/$(EG).yaml
+
+# ================================================================
+
+.PHONY: README
+README:
+	markdown  README.md  > README.html
 
 # ================================================================
 
