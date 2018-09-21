@@ -1,7 +1,7 @@
 # RIFFL: RISC-V Formal Feature List
 
 RIFFL is an experimental DSL to formally describe the full feature set
-of a RISC-V implementation.  A typical use-cases:
+of a RISC-V implementation.  Typical use-cases:
 
 - In RISC-V Compliance Testing: when testing an implementation's
     compliance with the RISC-V specification, we compare the
@@ -41,8 +41,10 @@ features.
 
 Features in `foo.yaml` that are not recognized by `RIFFL_Check` are
 passed through as-is and without checking (these are typically highly
-implementation-specific).  Implementors may wish to extend the code
-here to support their additional features.
+implementation-specific).
+
+Implementors may wish to extend `src/RIFFL_Decls.py` here to support
+additional features specific to their implementation.
 
 ### Feature Values and Feature Lists
 
@@ -83,14 +85,14 @@ meaningful when `XLEN:64` is specified.
 
 In this repo you will find:
 
-- `src/RIFFL_Decls.py` (Python source file): a specification of all
-    possible features and their constraints (allowed values,
-    preconditions, dependence on other features, etc.).  Please read
-    the extensive comments in the file for how feature types are
-    represented, and semantics, and peruse the feature types to see
-    how preconditions, constraints and defaults are expressed.
+- `src/RIFFL_Decls.py` (Python source file): a 
+    specification of all standard features, their defaults and their
+    constraints (allowed values, preconditions, dependence on other
+    features, etc.).
 
-    Note: currently contains many but not all features.
+    The notation is very declarative.  Implementors may wish to add
+    declarations for features specific to their
+    implementation/environment.
 
 - `Examples/` (directory): Several example input YAML files.
 
@@ -100,29 +102,27 @@ If you are only reading, then the above files are enough.
 
 ### Execution
 
-The repo also contains Python files `Main.py` and
-`Constraint_Check.py` using which you can execute.  Make sure your
-installation has:
+The repo also contain executable Python file `src/RIFFL_Check.py`.  Make
+sure your installation has:
 
-- Python 3.5 or 3.6
-- The `python3-yaml` library.
+- Python 3.5 or 3.6 (this code has been tested on Python 3.5.3 and 3.6.5).
+- The `python3-yaml` library (used by `RIFFL_Check.py` to read/write yaml files)
 
 Then, you can execute like this:
 
-        $ ./Main.py  <feature_list_file (foo.yaml)>    <optional verbosity of 1, 2, ..>
+        $ src/RIFFL_Check.py    <feature_list_file (foo.yaml)>    <optional verbosity of 1, 2, ..>
 
         $ make demo    will do the above on Examples/eg1.yaml
 
 This will:
 
- - read the YAML file,
- - separate the constraints into standard (present in `RISCV_Feature_Types`) and non-standard features,
- - check all constraints (on standard features)
- - write out two files:
-     - `foo_std.yaml` which "completes" the given standard features with all defaults
-     - `foo_nonstd.yam` which contains all the non-standard features (as-is from the input).
+ - read the YAML file (`foo.yaml`, say),
+ - separate the constraints into known (declared in `RISCV_Feature_Types`) and unknown features,
+ - check all constraints on known features and print diagnostics
+ - if the constraints were consistent, write out `foo_checked.yaml` containing:
+     - known features given in `foo.yaml`
+     - known features omitted in `foo.yaml` that took on default values
+     - unknown features in `foo.yaml`, passed through as is.
 
-   These latter two files can be read by a formal ISA spec or universal
+   These output file can be read by a formal ISA spec or universal
    simulator to contrain its behavior.
-
-This has been tested on Python 3.5.3 and 3.6.5.

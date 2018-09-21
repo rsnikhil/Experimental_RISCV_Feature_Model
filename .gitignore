@@ -104,5 +104,4 @@ venv.bak/
 .mypy_cache/
 
 README.html
-*_std.yaml
-*_nonstd.yaml
+*_checked.yaml
