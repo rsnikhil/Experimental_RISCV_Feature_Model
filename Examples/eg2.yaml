@@ -16,5 +16,6 @@ CYCLE_defined: True
 TIME_defined: False
 INSTRET_defined: True
 
-address_map: [ [0x8000_0000, 0x0100_0000, "MEM", "RW",   "Main Mem"]
+address_map: [Address_map,
+              ["Main Mem", 0x8000_0000, 0x0100_0000, "MEM", "RW"]
              ]

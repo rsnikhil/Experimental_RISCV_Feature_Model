@@ -1,27 +1,38 @@
 .PHONY: help
 help:
+	@echo "  Help:"
+	@echo "    make demo1/../demo6       to run demo on examples in Examples/ dir"
+	@echo "    make V=1/2 demoJ          to run demo at higher verbosity"
 	@echo "    make clean                Removes Emacs ~ files"
 	@echo "    make full_clean           Removes all generated files, __pycache__, etc."
 
 # ================================================================
 
-EG ?= eg1
+V ?=
 
-.PHONY: demo
-demo:
-	src/RIFFL_Check.py  Examples/$(EG).yaml
+.PHONY: demo1
+demo1:
+	src/RIFFL_Check.py  Examples/eg1.yaml  $(V)
 
-.PHONY: demo_RV64
-demo_RV64:
-	src/RIFFL_Check.py  Examples/RV64IMAUS.yaml
+.PHONY: demo2
+demo2:
+	src/RIFFL_Check.py  Examples/eg2.yaml  $(V)
 
-.PHONY: demo_RV64_v1
-demo_RV64_v1:
-	src/RIFFL_Check.py  Examples/RV64IMAUS.yaml  1
+.PHONY: demo3
+demo3:
+	src/RIFFL_Check.py  Examples/eg3.yaml  $(V)
 
-.PHONY: demo_RV64_v2
-demo_RV64_v2:
-	src/RIFFL_Check.py  Examples/RV64IMAUS.yaml  2
+.PHONY: demo4
+demo4:
+	src/RIFFL_Check.py  Examples/eg4.yaml  $(V)
+
+.PHONY: demo5
+demo5:
+	src/RIFFL_Check.py  Examples/RV32IMU.yaml  $(V)
+
+.PHONY: demo6
+demo6:
+	src/RIFFL_Check.py  Examples/RV64AIMSU.yaml  $(V)
 
 # ================================================================
 

@@ -9,29 +9,32 @@ Traps_on_unaligned_mem_access: True
 Reset_PC: 0x1000
 WFI_is_nop: False
 MTVEC_is_read_only: False
-MTVEC_WARL_fn: ["Lambda", ["write_val", "old_val"], ["Bit_and", "write_val", 0xFFFF_FFFF_FFFF_FFFC]]
+MTVEC_BASE_WARL_fn: ["WARL_fn", "$writeval"]
+MTVEC_MODE_WARL_fn: ["WARL_fn", 1]
 NMI_address: 0x200
 MSIP_address: 0x_0200_0000
 MTIME_address: 0x_0200_bFF8
 MTIMECMP_address: 0x_0200_4000
 MCAUSE_on_reset: 0
 
-Extn_S: True
+MISA_U: True
+MISA_S: True
 STVEC_is_read_only: False
-VM_Sv48: True
+Sv48: True
 PTE_A_trap: True
 PTE_D_trap: True
 
-Extn_U: True
+MISA_U: True
 
 CYCLE_defined: True
 TIME_defined: False
 INSTRET_defined: True
 
-address_map: [ [     0x1000,      0x1000, "MEM", "RO",   "Boot ROM"],
-               [0x0200_0000,      0xC000, "IO",  "RW",   "Timer, MSIP"],
-               [0x8000_0000, 0x1000_0000, "MEM", "RW",   "Main Mem"],
-               [0xC000_0000,        0x80, "IO",  "RW",   "UART"]
+address_map: [Address_map,
+               ["Boot ROM",          0x1000,      0x1000, "MEM", "RO"],
+               ["Timer, MSIP",  0x0200_0000,      0xC000, "IO",  "RW"],
+               ["Main Mem",     0x8000_0000, 0x1000_0000, "MEM", "RW"],
+               ["UART",         0xC000_0000,        0x80, "IO",  "RW"]
              ]
 
 # Non-standard

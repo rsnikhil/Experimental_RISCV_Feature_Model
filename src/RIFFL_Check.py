@@ -60,25 +60,33 @@ def main (argv = None):
     if (len (argv) == 3):
         verbosity = int (argv [2])
 
-    # Echo feature list, for info
-    print ("---------------- Input features:")
-    pprint.pprint (feature_dict, indent=4)
-
     # List all feature decls if verbose
     if (verbosity > 1):
         sys.stdout.write ("All feature decls:\n")
         for fdecl in RD.fdecls:
-            print ("----------------")
-            print (RD.fdecl_name (fdecl), ": default ", RD.fdecl_default (fdecl), "    # ", RD.fdecl_descr (fdecl))
-            pprint.pprint (RD.fdecl_constraint (fdecl), indent=4)
+            print_fdecl (fdecl)
         sys.stdout.write ("End of all feature specs\n")
 
     # Split input features into known and unknown features (and convert from dict to list)
     (known_features, unknown_features) = split_known_and_unknown (RD.fdecls, feature_dict)
 
+    # Echo feature list, for info
+    if (len (known_features) > 0):
+        print ("Known features in input ----------------")
+        for (fname, fval) in known_features:
+            sys.stdout.write ("  {0}:".format (fname))
+            pprint_at_indent (sys.stdout, fval, 4)
+    if (len (unknown_features) > 0):
+        print ("Unknown features in input ----------------")
+        for (fname, fval) in unknown_features:
+            sys.stdout.write ("  {0}:".format (fname))
+            pprint_at_indent (sys.stdout, fval, 4)
+
     # Check ALL fdecls constraints on known features
     sys.stdout.write ("---------------- Checking all constraints\n")
     (all_pass, known_features_out) = check_all_constraints (verbosity, RD.fdecls, known_features)
+
+    sys.exit (0)    # DELETE
 
     # If constraints met, write output file (input feature list + defaulted features)
     if all_pass:
@@ -117,11 +125,6 @@ def write_output_features (stream, features, title):
             stream.write ("'{0}':\n".format (name))
             pprint_at_indent (stream, val, 4)
     
-# ****************************************************************
-# ****************************************************************
-# ****************************************************************
-# RISC-V feature list constraint checker
-
 # ================================================================
 # Split a dict of features into two lists: known and unkown features
 # based on membership (or not) in feature decls
@@ -152,6 +155,20 @@ def split_given_and_defaults (flist1, flist2):
         else:
             defaults.append ((name, val))
     return (given, defaults)
+
+# ****************************************************************
+# ****************************************************************
+# ****************************************************************
+# RISC-V feature list constraint checker
+
+# ================================================================
+# These selectors encapsulate the representation of fdecls as 5-tuples.
+
+def fdecl_name       (fdecl): return fdecl [0]
+def fdecl_descr      (fdecl): return fdecl [1]
+def fdecl_default    (fdecl): return fdecl [2]
+def fdecl_preconds   (fdecl): return fdecl [3]
+def fdecl_constraint (fdecl): return fdecl [4]
 
 # ================================================================
 # Check all constraints
@@ -187,20 +204,21 @@ def check_all_constraints (verbosity, fdecls, features):
 #     'fdecl':  feature decl whose default/precond/constraint we are currently eval'ing
 
 def check_fdecl_constraint (verbosity, fdecls, flist, fdecl):
-    debug_print (verbosity, "================================\n")
-    debug_print (verbosity, "Checking fdecl {0}    {1}\n".format (RD.fdecl_name (fdecl), RD.fdecl_descr (fdecl)))
+    if (verbosity > 0):
+        sys.stdout.write ("Checking fdecl\n")
+        print_fdecl (fdecl)
 
     prefix = ""
 
     # Eval this feature's value from flist
-    v = eval (verbosity, prefix, fdecls, flist, fdecl, "v")
+    v = eval (verbosity, prefix, fdecls, flist, fdecl, "$this")
     debug_print (verbosity, "Feature value: {0}\n".format (v))
 
     # Check if all preconds of this fdecl are True (i.e., is it relevant?)
     # Collect all the False preconds, for informative message
     false_preconds = []
     preconds = True
-    for precond in RD.fdecl_preconds (fdecl):
+    for precond in fdecl_preconds (fdecl):
         debug_print (verbosity, "---- Checking precondition:\n")
         if (verbosity > 0): pprint.pprint (precond, indent = 4)
 
@@ -215,29 +233,29 @@ def check_fdecl_constraint (verbosity, fdecls, flist, fdecl):
 
     # Check if constraint of this fdecl is True
     # If so, collect this feature-out
-    constraint  = RD.fdecl_constraint (fdecl)
+    constraint  = fdecl_constraint (fdecl)
     feature_out = None
     debug_print (verbosity, "---- Checking constraint:")
     if (verbosity > 0): pprint.pprint (constraint, indent = 4)
     if preconds:
         x           = eval (verbosity, prefix, fdecls, flist, fdecl, constraint)
-        feature_out = (RD.fdecl_name (fdecl), v)
+        feature_out = (fdecl_name (fdecl), v)
         if x:
             debug_print (verbosity, "Constraint evaluates TRUE\n")
         else:
-            sys.stdout.write ("Constraint evaluates FALSE for fdecl '{0}' ({1})\n".format (RD.fdecl_name (fdecl),
-                                                                                           RD.fdecl_descr (fdecl)))
+            sys.stdout.write ("Constraint evaluates FALSE for fdecl '{0}' ({1})\n".format (fdecl_name (fdecl),
+                                                                                           fdecl_descr (fdecl)))
             sys.stdout.write ("  Feature value is {0}\n".format (v))
             sys.stdout.write ("  Constraint is: ")
-            pprint.pprint (RD.fdecl_constraint (fdecl), indent = 4)
+            pprint.pprint (fdecl_constraint (fdecl), indent = 4)
 
     else:
         x = True
         debug_print (verbosity, "Constraint trivially TRUE\n")
 
-        v1 = select_fval (flist, RD.fdecl_name (fdecl))
+        v1 = select_fval (flist, fdecl_name (fdecl))
         if v1 != None:
-            sys.stdout.write ("Feature '{0}':{1}    is not relevant\n".format (RD.fdecl_name (fdecl), v1))
+            sys.stdout.write ("Feature '{0}':{1}    is not relevant\n".format (fdecl_name (fdecl), v1))
             sys.stdout.write ("  The following preconditions are false\n")
             for precond in false_preconds:
                 pprint_at_indent (sys.stdout, precond, 4)
@@ -257,38 +275,51 @@ def eval (verbosity, prefix, fdecls, flist, fdecl, e):
     prefix_ret  = prefix + "<== Eval "
     prefix_next = prefix + "    "
 
-    # Leaf term: Special variable 'v' (value of current feature)
-    if e == "v":
-        fname  = RD.fdecl_name (fdecl)
+    # Leaf term: Special variable '$this' (value of current feature)
+    if e == "$this":
+        fname  = fdecl_name (fdecl)
         v_expr = select_fval (flist, fname)
         if (v_expr == None):
-            v_expr = RD.fdecl_default (fdecl)
+            v_expr = fdecl_default (fdecl)
         v = eval (verbosity, prefix_next, fdecls, flist, fdecl, v_expr)
         return debug_trace (verbosity, prefix_ret, v)
 
-    # Leaf term: Special variable 'max_XLEN' (max unsigned integer of width XLEN)
-    if e == "max_XLEN":
+    # Leaf term: Special variable '$max_XLEN' (max unsigned integer of width XLEN)
+    if e == "$max_XLEN":
         v = select_fval (flist, "XLEN")
         if (v == None):
-            sys.stderr.write ("ERROR: evaluating 'max_XLEN': XLEN has not been specified\n")
+            sys.stderr.write ("ERROR: evaluating '$max_XLEN': XLEN has not been specified\n")
             sys.exit (1)
         if (v == 32):
             return debug_trace (verbosity, prefix_ret, 0xFFFFFFFF)
         elif (v == 64):
             return debug_trace (verbosity, prefix_ret, 0xFFFFFFFFFFFFFFFF)
         else:
-            sys.stderr.write ("ERROR: evaluating 'max_XLEN': XLEN ({0}) is not 32 or 64\n".format (v))
+            sys.stderr.write ("ERROR: evaluating '$max_XLEN': XLEN ({0}) is not 32 or 64\n".format (v))
             sys.exit (1)
+
+    # Leaf term: Special variable '$<feature>'
+
+    if (type (e) == str) and e.startswith ('$'):
+        fname_x  = e [1:]
+        v_expr_x = select_fval (flist, fname_x)
+        if (v_expr_x == None):
+            fdecl_x = select_fdecl (fdecls, fname_x)
+            v_expr_x = fdecl_default (fdecl_x)
+        result = eval (verbosity, prefix_next, fdecls, flist, fdecl, v_expr_x)
+        return debug_trace (verbosity, prefix_ret, result)
+
+    if e == "True":  return debug_trace (verbosity, prefix_ret, True)
+    if e == "False":  return debug_trace (verbosity, prefix_ret, False)
 
     # Leaf term: Constants
     if e == None:        return debug_trace (verbosity, prefix_ret, e)
     if type (e) == int:  return debug_trace (verbosity, prefix_ret, e)
     if type (e) == str:  return debug_trace (verbosity, prefix_ret, e)
     if type (e) == bool: return debug_trace (verbosity, prefix_ret, e)
-    if type (e) == list: return debug_trace (verbosity, prefix_ret, e)
 
     # Assertion check that it's not a leaf term
-    if type (e) != tuple:
+    if type (e) != list:
         sys.stderr.write ("INTERNAL ERROR: unknown form of expression\n")
         pprint.pprint (e, indent = 4)
         sys.exit (1)
@@ -305,26 +336,39 @@ def eval (verbosity, prefix, fdecls, flist, fdecl, e):
             v2 = eval (verbosity, prefix_next, fdecls, flist, fdecl, e_args [2])
             return debug_trace (verbosity, prefix_ret, v2)
 
-    elif op in ["Or2", "Or3", "Or4", "Or5"]:
+    if op in ["||"]:
         result = False
         for e_arg in e_args:
             result = eval (verbosity, prefix_next, fdecls, flist, fdecl, e_arg)
             if result: break
         return debug_trace (verbosity, prefix_ret, result)
 
-    elif op in ["And2", "And3", "And4", "And5"]:
+    if op in ["&&"]:
         result = True
         for e_arg in e_args:
             result = eval (verbosity, prefix_next, fdecls, flist, fdecl, e_arg)
             if not result: break
         return debug_trace (verbosity, prefix_ret, result)
 
-    elif op == "Lambda":
+    if op.upper() == "LIST":
+        result = []
+        for e_arg in e_args:
+            result_j = eval (verbosity, prefix_next, fdecls, flist, fdecl, e_arg)
+            result.append (result_j)
+        return debug_trace (verbosity, prefix_ret, result)
+
+    if op == "Address_map":
+        result = e
+        return debug_trace (verbosity, prefix_ret, result)
+
+    if op == "WARL_fn":
         return debug_trace (verbosity, prefix_ret, e)
 
     # Ordinary application: eval args, apply op to args
     v_args = [eval (verbosity, prefix_next, fdecls, flist, fdecl, e_arg) for e_arg in e_args]
     return apply (verbosity, prefix, fdecls, flist, fdecl, op, v_args)
+
+# Apply 'op' to 'v_args' in context of 'fdecls', 'flist', 'fdecl'
 
 def apply (verbosity, prefix, fdecls, flist, fdecl, op, v_args):
     debug_trace (verbosity, prefix + "    Apply: " + op + " ", v_args)
@@ -336,39 +380,32 @@ def apply (verbosity, prefix, fdecls, flist, fdecl, op, v_args):
     elif op == "Is_address_map": result = is_address_map (v_args [0])
     elif op == "Are_hartids":    result = are_hartids (v_args [0])
 
-    elif op == "Bit_Not":        result = (~ v_args [0])
-    elif op == "Bit_And":        result = (v_args [0] &  v_args [1])
-    elif op == "Bit_Or":         result = (v_args [0] |  v_args [1])
-    elif op == "Bit_XOr":        result = (v_args [0] ^  v_args [1])
+    elif op == "~":              result = (~ v_args [0])
+    elif op == "&":              result = (v_args [0] &  v_args [1])
+    elif op == "|":              result = (v_args [0] |  v_args [1])
+    elif op == "^":              result = (v_args [0] ^  v_args [1])
 
-    elif op == "Ne":             result = (v_args [0] != v_args [1])
-    elif op == "Eq":             result = (v_args [0] == v_args [1])
+    elif op == "!=":             result = (v_args [0] != v_args [1])
+    elif op == "==":             result = (v_args [0] == v_args [1])
 
-    elif op == "Lt":             result = (v_args [0] <  v_args [1])
-    elif op == "Le":             result = (v_args [0] <= v_args [1])
-    elif op == "Gt":             result = (v_args [0] >= v_args [1])
-    elif op == "Ge":             result = (v_args [0] >  v_args [1])
+    elif op == "<":              result = (v_args [0] <  v_args [1])
+    elif op == "<=":             result = (v_args [0] <= v_args [1])
+    elif op == ">":              result = (v_args [0] >= v_args [1])
+    elif op == ">=":             result = (v_args [0] >  v_args [1])
 
-    elif op == "Plus":           result = (v_args [0] +  v_args [1])
-    elif op == "Minus":          result = (v_args [0] -  v_args [1])
+    elif op == "+":              result = (v_args [0] +  v_args [1])
+    elif op == "-":              result = (v_args [0] -  v_args [1])
+    elif op == "neg":            result = (0 - v_args [0])
 
-    elif op == "Not":            result = (not v_args [0])
+    elif op == "not":            result = (not v_args [0])
 
     elif op == "In":             result = (v_args [0] in  v_args [1])
     elif op == "Range":          result = range (v_args [0], v_args [1])
     elif op == "Is_power_of_2":  result = is_power_of_2 (v_args [0])
 
-    elif op == "Fval":
-        fname_x  = v_args [0]
-        v_expr_x = select_fval (flist, fname_x)
-        if (v_expr_x == None):
-            fdecl_x = select_fdecl (fdecls, fname_x)
-            v_expr_x = RD.fdecl_default (fdecl_x)
-        result = eval (verbosity, prefix_next, fdecls, flist, fdecl, v_expr_x)
-
     elif op == "XLEN_code":      result = XLEN_code (v_args [0])
 
-    elif op == "Legal_WARL_fn":  result = legal_WARL_fn (verbosity, v_args [0], v_args [1])
+    elif op == "Is_WARL_fn":  result = is_WARL_fn (verbosity, v_args [0], v_args [1])
 
     else:
         sys.stderr.write ("ERROR: unknown form of expression\n")
@@ -420,7 +457,7 @@ def XLEN_code (xlen):
 # Checks that y is a legal WARL_fn for field x
 # TODO: this needs to be fleshed out for all the different WARL fields
 
-def legal_WARL_fn (verbosity, x, y):
+def is_WARL_fn (verbosity, x, y):
     if (verbosity > 0):
         sys.stdout.write ("TODO: check legality of WARL_fn for {0}\n".format (x))
         pprint_at_indent (sys.stdout, y, 8)
@@ -446,7 +483,7 @@ def is_power_of_2 (x):
 # Select feature decl with given name from list of feature decls
 
 def select_fdecl (fdecls, name):
-    fdecls1 = [fdecl for fdecl in fdecls if RD.fdecl_name (fdecl) == name]
+    fdecls1 = [fdecl for fdecl in fdecls if fdecl_name (fdecl) == name]
     if len (fdecls1) == 0:
         return None
     elif len (fdecls1) == 1:
@@ -486,6 +523,18 @@ def debug_trace (verbosity, prefix, e):
     if (verbosity > 1):
         sys.stdout.write (prefix); print (e)    
     return e
+
+def print_fdecl (fdecl):
+    sys.stdout.write ("Feature Constraint\n")
+    sys.stdout.write ("  Feature: {0}\n".format (fdecl_name (fdecl)))
+    sys.stdout.write ("  Descr: {0}\n".format (fdecl_descr (fdecl)))
+    sys.stdout.write ("  Default:\n")
+    pprint_at_indent (sys.stdout, fdecl_default (fdecl), 4)
+    sys.stdout.write ("  Preconds:\n")
+    for precond in fdecl_preconds (fdecl):
+        pprint_at_indent (sys.stdout, precond, 4)
+    sys.stdout.write ("  Constraint:\n")
+    pprint_at_indent (sys.stdout, fdecl_constraint (fdecl), 4)
 
 def pprint_at_indent (stream, x, indent_n):
     s = pprint.pformat (x, indent = indent_n)

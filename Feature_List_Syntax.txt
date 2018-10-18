@@ -1,0 +1,234 @@
+		      RISC-V FEATURE LIST SYNTAX
+		       Version 0.5, 2018-10-18
+		         Rishiyur S. Nikhil
+
+This document is in, and makes reference to the following GitHub repo:
+    https://github.com/rsnikhil/Experimental_RISCV_Feature_Model
+which also contains Python code and example feature lists.
+
+>================================================================
+INTRODUCTION
+
+This document describes the syntax of files representing "Feature
+Lists" of RISC-V implementations.  The Feature List for an
+implementation describes all implementation choices relevant for
+testing Compliance.  This includes major ISA choices (such as
+'RV64GC') but also myriads of options that are described in various
+places in the ISA manuals, such as:
+
+- Trap or handle misaligned memory accesses
+- Granularity of LR/SC reservations
+- Treatment of A and D bits in Page Table Entries
+- etc.
+
+This Feature-List file is used to constrain a Formal Model so that,
+when it executes a Compliance Test, it behaves "exactly like" the
+implementation for which we are testing Compliance.
+
+[Technically, the provided Feature-List file is not used directly by
+    the Formal Model.  It is first passed through a standard tool that
+    evaluates all the feature expressions, checks that the
+    Feature-List is consistent and meaningful, and fills in defaults
+    for features that are allowed to have defaults.  If everthing is
+    ok, the tool produces an output feature-list, which is then used
+    by the Formal Model.]
+
+>================================================================
+BASICS
+
+An implementation's Formal Feature List is supplied as a YAML file,
+i.e., a collection of pairs of the form:
+
+    feature_name: feature_value
+
+YAML is chosen for convenience: it is an industry standard (see
+'http://yaml.org/'), and libraries exist in most programming languages
+to read and write YAML files.
+
+This syntax spec further constrains the allowed feature-names and
+feature-values allowed in a feature-list YAML file.
+
+Unrecognized feature-names should be reported by standard tools and
+ignored.  [Implementations may use these feature lists for purposes
+other than Compliance, such as configuring software and operating
+systems, etc.  Those uses may require other features not relevant for
+Compliance testing.]
+
+Typically, most feature-values are constants:
+    Strings
+    Integer constants
+    Boolean constants (True, False)
+
+More generally, a feature-value can be an "expression" that is
+evaluated to obtain the actual feature value.  Thus, a feature value
+can depend on other feature values.
+
+More complex expressions are written as "S-Expressions" using YAML
+lists (items in square brackets, separated by commas).  The available
+forms are listed below.
+
+[cf. Lisp/Scheme 'S-Expressions', 'Symbolic Expressions']
+
+NOTE: if there is a preference for more traditional notation,
+  including infix operators, we can redesign the syntax for that, and
+  write a parser for that.  We propose postponing that decision until
+  we've had some experience with the tools as is, which can inform
+  what the preferred syntax should be.
+
+>================================================================
+FEATURE NAMES, and CONSISTENCY BETWEEN FEATURES
+
+Please see the file 'RIFFL_Decls.py' for a list of known feature-names
+and for legality constraints on feature values.
+
+Legality constraints express dependencies between features.  For
+example, feature 'Sv39' can have the value 'True' only if feature
+"MISA_S" is True and feature "XLEN" has value 64.
+
+>================================================================
+SPECIAL STRINGS
+
+"True" represents the Boolean value True
+
+"False" represents the Boolean value False
+
+"$writeval" is used in WPRI, WLRL and WARL functions to refer to the
+    dynamic value attempted to be written (see separate note below).
+
+"$XLEN_code" represents the 2-bit encoding of XLEN found in MISA.MXL, MSTATUS.SXL, MSTATUS.UXL
+
+"$max_XLEN" represents a 0x111...111 (all ones) of width XLEN
+
+All other strings starting with '$":
+  "$FOO" represents the value of Feature FOO in the current Feature
+    List.  Example: "$XLEN" represents the value of the XLEN feature.
+    Thus, some features can depend on other features.
+
+>================================================================
+WPRI, WLRL and WARL FUNCTIONS
+
+These are functions that describe what is actually written to a
+particular field of a CSR, based on a value attempted to be written
+(since only certain values may be legal in each such field.)
+
+cf. "Privileged Architecture Manual, Section 2.3",
+    for definitions of WPRI, WLRL and WARL.
+
+Note: the spec for each WPRI/WLRL/WARL CSR field is unique and
+specific to that particular field.  There are many dozens of such
+fields in the RISC-V ISA spec.
+
+>================================================================
+S-EXPRESSIONS IN FEATURE LISTS:
+
+S-expressions in feature lists have the following forms:
+
+YAML Strings
+YAML Numbers (integers, floating point)
+
+["List", e1, e2, ...]    A list of values
+
+["In", e1, e2]           e1 is a member of the list e2
+
+["WPRI_fn", e]           The value of e is written to the WPRI field.
+["WLRL_fn", e]           The value of e is written to the WLRL field.
+["WARL_fn", e]           The value of e is written to the WARL field.
+
+                         'e' is often a specific constant, but can
+                         also be an expression that computes something
+                         based on "$writeval" the value attempted to
+                         be written to the field (thus it is a
+                         function of "$writeval").
+
+["Address_map", region, ..., region]
+    where each 'region' is:
+        [name, base, bound, mem_or_io, permissions]
+    where
+        'base' and 'bound' are integers (byte addresses)
+	'mem_or_io' is "MEM" or "IO"
+	'permissions' is "RO" or "RW"
+
+    Address regions should be disjoint (no overlap).
+
+    Note: region descriptors are likely to be extended with more
+    properties, in the future.
+
+>----------------
+Standard manipulation operators/functions
+
+["==", e1, e2]           True if e1 == e2    (Integers, booleans, strings)
+["!=", e1, e2]           True if e1 != e2    (Integers, booleans, strings)
+["<", e1, e2]            True if e1 < e2     Integers
+["<=", e1, e2]           True if e1 <= e2    Integers
+[">", e1, e2]            True if e1 > e2     Integers
+[">=", e1, e2]           True if e1 >= e2    Integers
+
+["&", e1, e2]            Bit-wise AND of integers e1 and e2
+["|", e1, e2]            Bit-wise OR of integers e1 and e2
+["^", e1, e2]            Bit-wise XOR of integers e1 and e2
+["~", e]                 Bit-wise invert of integer e and e2
+
+["&&", e1, e2]           Logical AND of booleans e1 and e2
+["||", e1, e2]           Logical OR of booleans e1 and e2
+["!", e]                 Logical NOT of boolean e
+
+["+", e1, e2]            Add integers e1 and e2
+["-", e1, e2]            Subtract integers e1 and e2
+["neg", e]               Negate integer e
+
+["If", e1, e2, e3]       If e1 is True then e2 else e3
+
+>================================================================
+ADDITIONAL SYNTAX FOR EXTENDED EXPRESSIONS IN FEATURE CONSTRAINTS
+
+These extensions to the 'Expression' syntax are only used in
+'RIFFL_Decls.py', which is part of the 'RIFFL_Check' tool.
+
+The user who is writing a feature-list YAML file does not ever write
+these extended expressions, but we document them here because the user
+will need to consult RIFFL_Decls.py:
+
+ - to see what is the legal set of features,
+ - to understand what are the legal values allowed for each feature,
+ - to understand constraints between features,
+ - and to understand
+    error-messages from the 'RIFFL_Check' program when constraints
+    are violated.
+
+The file 'RIFFL_Decls.py' describes all RISC-V features relevant for
+Compliance-checking.  Each feature is described in a Python 5-tuple:
+
+    (feature-name, description, default, preconditions, constraint)
+
+where:
+
+    - 'default' is an expression ('None' for features that cannot be defaultd)
+
+    - 'preconditions' is a list of Boolean-valued expressions that
+          must be true for this feature to be relevant.  Example:
+	  - MISA_D requires MISA_F
+	  - MTVEC_BASE_WARL_fn  requires  MTVEC_is_read_only to be False
+    - 'constraint' is a Boolean-valued expression that must be true
+        for this feature to be valid.
+
+>----------------------------------------------------------------
+SPECIAL STRINGS
+
+"$this"    represents the value provided in a Feature List for this feature
+
+>----------------------------------------------------------------
+EXTENDED EXPRESSIONS
+
+Mostly these check types/well-formedness.
+
+    ["Is_int", e]
+    ["Is_bool", e]
+    ["Is_address_map", e]     e is a legal address-map
+    ["Is_WPRI_fn", e1, e2]    For CSR field e1, e2 is a legal WPRI function 
+    ["Is_WLRL_fn", e1, e2]    For CSR field e1, e2 is a legal WLRL function
+    ["Is_WARL_fn", e1, e2]    For CSR field e1, e2 is a legal WARL function
+    ["Is_Address_map", e]     e is a legal address map
+    ["Are_hardids", e]        e is a legal list of hartids
+                                  (set of integers, including the value 0)
+
+>================================================================
