@@ -86,8 +86,6 @@ def main (argv = None):
     sys.stdout.write ("---------------- Checking all constraints\n")
     (all_pass, known_features_out) = check_all_constraints (verbosity, RD.fdecls, known_features)
 
-    sys.exit (0)    # DELETE
-
     # If constraints met, write output file (input feature list + defaulted features)
     if all_pass:
         sys.stdout.write ("---------------- All constraints ok: writing output file '{0}'\n".
